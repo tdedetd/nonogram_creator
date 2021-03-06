@@ -1,0 +1,7 @@
+/in/**
+!/in/**.gitkeep
+/out/**
+**/__pycache__/
+
+.vscode
+.idea
