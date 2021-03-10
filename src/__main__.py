@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-from .utils import endswith, remove_dublicates
+from .utils import endswith
 from .nonogram import Nonogram
 
 
@@ -27,10 +27,8 @@ def main():
 
 
 def handle(image: Image) -> Image:
-    pixels = list(image.getdata())
-    colors: list[tuple] = remove_dublicates(pixels)
-    nonogram = Nonogram(image.size[0], image.size[1], colors)
-    return nonogram.image
+    nonogram = Nonogram(image)
+    return nonogram.generate_template()
 
 
 if __name__ == '__main__':
