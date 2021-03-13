@@ -17,7 +17,7 @@ def main():
     for f in files:
         path = os.path.join(IN_DIRECTORY, f)
         image = Image.open(path)
-        print('%s (%ix%i)' % (f, image.size[0], image.size[1]))
+        print('%s (%ix%i)' % (f, image.width, image.height))
 
         res_image = handle(image)
         res_image.save(os.path.join(OUT_DIRECTORY, f))
@@ -28,7 +28,7 @@ def main():
 
 def handle(image: Image) -> Image:
     nonogram = Nonogram(image)
-    return nonogram.generate_template()
+    return image
 
 
 if __name__ == '__main__':
