@@ -11,5 +11,10 @@ class Section:
         return self._color
 
     @property
+    def label_color(self):
+        avg = (self.color[0] + self.color[1] + self.color[2]) / 3
+        return (0, 0, 0) if avg > 127 else (255, 255, 255)
+
+    @property
     def length(self):
         return self._length

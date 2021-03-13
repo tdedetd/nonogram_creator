@@ -1,6 +1,6 @@
 import math
 
-from PIL import Image
+from PIL import Image, ImageFont
 from PIL.ImageDraw import Draw
 
 from .nonogram import Nonogram
@@ -18,7 +18,7 @@ class NonogramRenderer:
 
     def render(self,
                bold_grid_width=4,
-               cell_len=5,
+               cell_len=40,
                grid_section_size=5,
                grid_width=2,
                show_solution=False):
@@ -37,6 +37,7 @@ class NonogramRenderer:
         origin = self._get_nonogram_origin(cell_len)
 
         self._draw_grid(draw, origin, size, cell_len, grid_width, bold_grid_width, grid_section_size)
+        self._draw_sections(draw, origin, cell_len, grid_width, bold_grid_width, grid_section_size)
 
         if show_solution:
             self._draw_solution(draw, origin, cell_len, grid_width, bold_grid_width, grid_section_size)
@@ -64,9 +65,9 @@ class NonogramRenderer:
             bold = x > 0 and x < self.nonogram.width and x % grid_section_size == 0
             cur_grid_width = bold_grid_width if bold else grid_width
 
-            rectangle = [(cur_coord, 0),
-                         (cur_coord + cur_grid_width - 1, size[1])]
-            draw.rectangle(rectangle, fill='black', width=0)
+            rect = [(cur_coord, 0),
+                    (cur_coord + cur_grid_width - 1, size[1])]
+            draw.rectangle(rect, fill='black', width=0)
             cur_coord += cur_grid_width + cell_len
 
         cur_coord = origin[1]
@@ -74,10 +75,57 @@ class NonogramRenderer:
             bold = y > 0 and y < self.nonogram.height and y % grid_section_size == 0
             cur_grid_width = bold_grid_width if bold else grid_width
 
-            rectangle = [(0, cur_coord),
-                         (size[0], cur_coord + cur_grid_width - 1)]
-            draw.rectangle(rectangle, fill='black', width=0)
+            rect = [(0, cur_coord),
+                    (size[0], cur_coord + cur_grid_width - 1)]
+            draw.rectangle(rect, fill='black', width=0)
             cur_coord += cur_grid_width + cell_len
+
+    def _draw_section(self, draw: Draw, font, section: Section, coords: tuple):
+        x_diff = 0.4 * font.size if section.length < 10 else 0.08 * font.size
+        label_color = (0, 0, 0) if self.nonogram.mono else section.label_color
+        draw.text((coords[0] + x_diff, coords[1] + 0.1 * font.size), str(section.length), font=font, fill=label_color)
+
+    def _draw_sections(self,
+                       draw: Draw,
+                       origin: tuple,
+                       cell_len: int,
+                       grid_width: int,
+                       bold_grid_width: int,
+                       grid_section_size: int):
+
+        font_size = int(0.8 * cell_len)
+        font = ImageFont.truetype(font='Arial.ttf', size=font_size)
+        cell_len_sub_1 = cell_len - 1
+
+        cur_coord = origin[0]
+        for x, line in enumerate(self.nonogram.vertical_sections):
+            bold = x > 0 and x < self.nonogram.width and x % grid_section_size == 0
+            cur_coord += bold_grid_width if bold else grid_width
+
+            sections_count = len(line)
+            for index, section in enumerate(line):
+                y_start = origin[1] - (sections_count - index) * cell_len
+                rect = [(cur_coord, y_start), (cur_coord + cell_len_sub_1, y_start + cell_len_sub_1)]
+                if not self.nonogram.mono:
+                    draw.rectangle(rect, fill=section.color, width=0)
+                self._draw_section(draw, font, section, (cur_coord, y_start))
+
+            cur_coord += cell_len
+
+        cur_coord = origin[1]
+        for y, line in enumerate(self.nonogram.horizontal_sections):
+            bold = y > 0 and y < self.nonogram.height and y % grid_section_size == 0
+            cur_coord += bold_grid_width if bold else grid_width
+
+            sections_count = len(line)
+            for index, section in enumerate(line):
+                x_start = origin[0] - (sections_count - index) * cell_len
+                rect = [(x_start, cur_coord), (x_start + cell_len_sub_1, cur_coord + cell_len_sub_1)]
+                if not self.nonogram.mono:
+                    draw.rectangle(rect, fill=section.color, width=0)
+                self._draw_section(draw, font, section, (x_start, cur_coord))
+
+            cur_coord += cell_len
 
     def _draw_solution(self,
                        draw: Draw,
@@ -99,8 +147,8 @@ class NonogramRenderer:
             for y in range(image.height):
                 bold = y > 0 and y < image.height and y % grid_section_size == 0
                 cur_y += bold_grid_width if bold else grid_width
-                rectangle = [(cur_x + x, cur_y + y), (cur_x + x + cell_len - 1, cur_y + y + cell_len - 1)]
-                draw.rectangle(rectangle, fill=px[x, y], width=0)
+                rect = [(cur_x + x, cur_y + y), (cur_x + x + cell_len - 1, cur_y + y + cell_len - 1)]
+                draw.rectangle(rect, fill=px[x, y], width=0)
                 cur_y += cell_len - 1
 
             cur_x += cell_len - 1

@@ -8,6 +8,7 @@ class Nonogram:
     __slots__ = ('_back_color',
                  '_horisontal_sections',
                  '_image',
+                 '_mono',
                  '_vertical_sections')
 
     def __init__(self, image: Image):
@@ -36,8 +37,11 @@ class Nonogram:
         return self._image
 
     @property
-    def mono_color(self) -> bool:
-        return len(self.colors) <= 2
+    def mono(self) -> bool:
+        """
+        If nonogram has 2 or less different colors
+        """
+        return self._mono
 
     @property
     def vertical_sections(self) -> list[list[Section]]:
@@ -72,6 +76,8 @@ class Nonogram:
         pixels = list(self.image.getdata())
         colors = remove_dublicates(pixels)
         colors.sort(key=lambda color: color[0] + color[1] + color[2], reverse=True)
+
+        self._mono = len(colors) <= 2
         self._back_color = colors[0]
 
     def _get_sections(self, colors: list) -> list[Section]:
