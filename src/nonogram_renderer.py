@@ -1,5 +1,8 @@
+import math
+
 from PIL import Image
 from PIL.ImageDraw import Draw
+
 from .nonogram import Nonogram
 from .section import Section
 
@@ -14,7 +17,9 @@ class NonogramRenderer:
         return self._nonogram
 
     def render(self,
-               cell_len=3,
+               bold_grid_width=4,
+               cell_len=5,
+               grid_section_size=5,
                grid_width=2,
                show_solution=False):
 
@@ -23,40 +28,67 @@ class NonogramRenderer:
                                                 self.nonogram.horizontal_sections,
                                                 self.nonogram.vertical_sections,
                                                 cell_len,
-                                                grid_width)
+                                                grid_width,
+                                                bold_grid_width,
+                                                grid_section_size)
 
         image = Image.new(mode='RGB', size=size, color=self.nonogram.back_color)
         draw = Draw(image)
+        origin = self._get_nonogram_origin(cell_len)
 
-        self._draw_grid(draw, size, cell_len, grid_width)
+        self._draw_grid(draw, origin, size, cell_len, grid_width, bold_grid_width, grid_section_size)
 
         return image
 
     def _get_nonogram_origin(self, cell_len):
-        h_sections_count = NonogramRenderer._get_max_sections_len(self.nonogram.horizontal_sections)
-        v_sections_count = NonogramRenderer._get_max_sections_len(self.nonogram.vertical_sections)
+        h_sections_count = NonogramRenderer._get_max_sections_count(self.nonogram.horizontal_sections)
+        v_sections_count = NonogramRenderer._get_max_sections_count(self.nonogram.vertical_sections)
         x = h_sections_count * cell_len
         y = v_sections_count * cell_len
         return x, y
 
-    def _draw_grid(self, draw: Draw, size: tuple, cell_len: int, grid_width: int):
-        origin = self._get_nonogram_origin(cell_len)
-        for x in range(self.nonogram.width + 1):
-            x_start = origin[0] + x * cell_len + x * grid_width
-            rectangle = [(x_start, 0),
-                         (x_start + grid_width - 1, size[1])]
-            draw.rectangle(rectangle, fill='black', width=0)
+    def _draw_grid(self,
+                   draw: Draw,
+                   origin: tuple,
+                   size: tuple,
+                   cell_len: int,
+                   grid_width: int,
+                   bold_grid_width: int,
+                   grid_section_size: int):
 
-        for y in range(self.nonogram.height + 1):
-            y_start = origin[1] + y * cell_len + y * grid_width
-            rectangle = [(0, y_start),
-                         (size[0], y_start + grid_width - 1)]
+        cur_coord = origin[0]
+        for x in range(self.nonogram.width + 1):
+            bold = x > 0 and x < self.nonogram.width and x % grid_section_size == 0
+            cur_grid_width = bold_grid_width if bold else grid_width
+
+            rectangle = [(cur_coord, 0),
+                         (cur_coord + cur_grid_width - 1, size[1])]
             draw.rectangle(rectangle, fill='black', width=0)
+            cur_coord += cur_grid_width + cell_len
+
+        cur_coord = origin[1]
+        for y in range(self.nonogram.height + 1):
+            bold = y > 0 and y < self.nonogram.height and y % grid_section_size == 0
+            cur_grid_width = bold_grid_width if bold else grid_width
+
+            rectangle = [(0, cur_coord),
+                         (size[0], cur_coord + cur_grid_width - 1)]
+            draw.rectangle(rectangle, fill='black', width=0)
+            cur_coord += cur_grid_width + cell_len
 
     @staticmethod
-    def _get_dimension_len(length, sections, cell_len, grid_width):
-        max_sect_len = NonogramRenderer._get_max_sections_len(sections)
-        return (length + max_sect_len) * cell_len + (length + 1) * grid_width
+    def _get_dimension_len(length: int,
+                           sections: list[list[Section]],
+                           cell_len: int,
+                           grid_width: int,
+                           bold_grid_width: int,
+                           grid_section_size: int):
+
+        max_sect_len = NonogramRenderer._get_max_sections_count(sections)
+        grid_sect_dividers_count = math.ceil(length / grid_section_size) - 1
+        grid_total_width = (length - grid_sect_dividers_count + 1) * grid_width + grid_sect_dividers_count * bold_grid_width
+
+        return (length + max_sect_len) * cell_len + grid_total_width
 
     @staticmethod
     def _get_image_size(nonogram_width: int,
@@ -64,13 +96,15 @@ class NonogramRenderer:
                         horizontal_sections: list[list[Section]],
                         vertical_sections: list[list[Section]],
                         cell_len: int,
-                        grid_width: int):
+                        grid_width: int,
+                        bold_grid_width: int,
+                        grid_section_size: int):
 
-        width = NonogramRenderer._get_dimension_len(nonogram_width, horizontal_sections, cell_len, grid_width)
-        height = NonogramRenderer._get_dimension_len(nonogram_heigth, vertical_sections, cell_len, grid_width)
+        width = NonogramRenderer._get_dimension_len(nonogram_width, horizontal_sections, cell_len, grid_width, bold_grid_width, grid_section_size)
+        height = NonogramRenderer._get_dimension_len(nonogram_heigth, vertical_sections, cell_len, grid_width, bold_grid_width, grid_section_size)
         return width, height
 
     @staticmethod
-    def _get_max_sections_len(lines_of_sections: list[list[Section]]) -> int:
+    def _get_max_sections_count(lines_of_sections: list[list[Section]]) -> int:
         lines = list(lines_of_sections)
         return max(list(map(lambda line: len(line), lines_of_sections)))
