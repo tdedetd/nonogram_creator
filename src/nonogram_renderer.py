@@ -38,6 +38,9 @@ class NonogramRenderer:
 
         self._draw_grid(draw, origin, size, cell_len, grid_width, bold_grid_width, grid_section_size)
 
+        if show_solution:
+            self._draw_solution(draw, origin, cell_len, grid_width, bold_grid_width, grid_section_size)
+
         return image
 
     def _get_nonogram_origin(self, cell_len):
@@ -75,6 +78,32 @@ class NonogramRenderer:
                          (size[0], cur_coord + cur_grid_width - 1)]
             draw.rectangle(rectangle, fill='black', width=0)
             cur_coord += cur_grid_width + cell_len
+
+    def _draw_solution(self,
+                       draw: Draw,
+                       origin: tuple,
+                       cell_len: int,
+                       grid_width: int,
+                       bold_grid_width: int,
+                       grid_section_size: int):
+
+        image = self.nonogram.image
+        px = image.load()
+
+        cur_x = origin[0]
+        for x in range(image.width):
+            bold = x > 0 and x < image.width and x % grid_section_size == 0
+            cur_x += bold_grid_width if bold else grid_width
+
+            cur_y = origin[1]
+            for y in range(image.height):
+                bold = y > 0 and y < image.height and y % grid_section_size == 0
+                cur_y += bold_grid_width if bold else grid_width
+                rectangle = [(cur_x + x, cur_y + y), (cur_x + x + cell_len - 1, cur_y + y + cell_len - 1)]
+                draw.rectangle(rectangle, fill=px[x, y], width=0)
+                cur_y += cell_len - 1
+
+            cur_x += cell_len - 1
 
     @staticmethod
     def _get_dimension_len(length: int,
