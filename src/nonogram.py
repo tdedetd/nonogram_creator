@@ -28,7 +28,7 @@ class Nonogram:
         return self.image.height
 
     @property
-    def horizontal_sections(self):
+    def horizontal_sections(self) -> list[list[Section]]:
         return self._horisontal_sections
 
     @property
@@ -40,7 +40,7 @@ class Nonogram:
         return len(self.colors) <= 2
 
     @property
-    def vertical_sections(self):
+    def vertical_sections(self) -> list[list[Section]]:
         return self._vertical_sections
 
     @property
@@ -57,7 +57,7 @@ class Nonogram:
         for y in range(self.height):
             lines.append([pixels[x, y] for x in range(self.width)])
 
-        self._horisontal_sections = map(lambda line: self._get_sections(line), lines)
+        self._horisontal_sections = list(map(lambda line: self._get_sections(line), lines))
 
     def _calc_vertical_sections(self):
         pixels = self.image.load()
@@ -66,7 +66,7 @@ class Nonogram:
         for x in range(self.width):
             lines.append([pixels[x, y] for y in range(self.height)])
 
-        self._vertical_sections = map(lambda line: self._get_sections(line), lines)
+        self._vertical_sections = list(map(lambda line: self._get_sections(line), lines))
 
     def _define_backcolor(self):
         pixels = list(self.image.getdata())

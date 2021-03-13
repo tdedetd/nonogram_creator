@@ -2,6 +2,7 @@ import os
 from PIL import Image
 from .utils import endswith
 from .nonogram import Nonogram
+from .nonogram_renderer import NonogramRenderer
 
 
 IN_DIRECTORY = 'in'
@@ -28,7 +29,7 @@ def main():
 
 def handle(image: Image) -> Image:
     nonogram = Nonogram(image)
-    return image
+    return NonogramRenderer(nonogram).render()
 
 
 if __name__ == '__main__':
