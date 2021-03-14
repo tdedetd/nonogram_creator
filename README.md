@@ -1,5 +1,5 @@
 # Nonogram creator
-The nonograms generator by pixel images.
+The nonograms generator by pixel images. Python 3.9.
 
 Input folder: in/
 
