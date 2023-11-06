@@ -94,7 +94,7 @@ class NonogramRenderer:
                        grid_section_size: int):
 
         font_size = int(0.8 * cell_len)
-        font = ImageFont.truetype(font='Arial.ttf', size=font_size)
+        font = ImageFont.truetype(font='arial.ttf', size=font_size)
         cell_len_sub_1 = cell_len - 1
 
         cur_coord = origin[0]

@@ -6,7 +6,7 @@ Input folder: in/
 Output folder: out/
 
 ## Installition
-1. Install Python 3.9;
+1. Install Python 3.9 or later;
 2. Install virtualenv if not installed:
 
 ###### Windows:
